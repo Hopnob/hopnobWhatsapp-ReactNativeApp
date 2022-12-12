@@ -1,11 +1,15 @@
+import WardrobePage from './wardrobe';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createStackNavigator } from '@react-navigation/stack';
 import React, {useState,useRef,useEffect} from 'react';
-import {FlatList,ScrollView,StyleSheet,Text,View,Image} from 'react-native';
+import {FlatList,StyleSheet,Text,View,Image, Button, Touchable} from 'react-native';
 import {widthPercentageToDP as wp, heightPercentageToDP as hp} from 'react-native-responsive-screen';
 import { Dropdown } from 'react-native-element-dropdown';
 import { useFonts } from 'expo-font';
 import AppLoading from 'expo-app-loading';
 import axios from 'axios';
-
+import { TouchableOpacity } from 'react-native';
 const data = [
   { label: 'Item 1', value: '1' },
   { label: 'Item 2', value: '2' },
@@ -18,34 +22,44 @@ const data = [
 ];
 
 const clothsArray = [
-  { id: '0', image: require('../Hopnob/assets/images/wardrobe/allcloth.png') },
+{ id: '0', image: require('./assets/images/wardrobe/allcloth.png') },
+
 ];
 const clothsArrayRA = [
-  { id: '0', image: require('../Hopnob/assets/images/wardrobe/allcloth.png') },
+  { id: '0', image: require('./assets/images/wardrobe/allcloth.png') },
 ];
 
- 
-export default function App() {
+
+const Wardrobe = ({route})=>{
   const [value, setValue] = useState(null);
   const [listItems, setListItems] = useState(clothsArray);
-
   const [listItemsRA, setListItemsRA] = useState(clothsArrayRA);
-
   
+  const currURL = JSON.stringify(route.params, 5);
+  
+   
+
+  var parsedURLarr = currURL.match(/(\d+)/);
+  var mobileNumber = parsedURLarr[0];
+  
+  console.log(currURL)
+  console.log(mobileNumber)
   let [fontsLoaded] = useFonts({
-     'Open-sans': require('../Hopnob/assets/fonts/OpenSans-Regular.ttf'),
+     'Open-sans': require('./assets/fonts/OpenSans-Regular.ttf'),
    });
 
    const [newarray, setNewarray] = useState([]);
 
    useEffect(() => {
     const expensesListResp = async () => {
-      await axios.get(`https://hopnob-backend-cctjhm4vha-uc.a.run.app/api/v1/apparel/919997793031`)
+      await axios.get(`https://hopnob-backend-cctjhm4vha-uc.a.run.app/api/v1/apparel/${mobileNumber}`)
       .then(
         response =>{
           setNewarray(response.data.apparels)
         }
-        )
+        ).catch(err =>
+          alert(err)
+          )
     }
     expensesListResp();
   }, []);
@@ -68,13 +82,20 @@ export default function App() {
      return <AppLoading />;
    }
    
-   
+   function itemviewHandler(){
+    console.log('pressed');
+   }
+   function recentlyaddedViewHandler(){
+    console.log('pressed');
+   }
    const ItemView = ({ item }) => {
     return (
             <>
+            <TouchableOpacity onPress={itemviewHandler} >
             <View style={{backgroundColor:'#F5F5F5',borderRadius:20, justifyContent:'space-around',alignItems:'center', width:wp(30)-10,height:wp(35)-10, marginBottom:5, marginRight:5}}>
                 <Image style={{height:'100%',width:wp(30)-15 }}   source= {{uri: item.image }} />  
             </View>
+            </TouchableOpacity>
             </>
     );
   };
@@ -82,95 +103,147 @@ export default function App() {
   const recentlyaddedView = ({ item }) => {
     return (
             <>
+            <TouchableOpacity  onPress={recentlyaddedViewHandler}>
+
+           
             <View style={{backgroundColor:'#F5F5F5',borderRadius:20, justifyContent:'space-around',alignItems:'center', width:wp(30)-10,height:wp(35)-10, marginBottom:5, marginRight:5}}>
                 <Image style={{height:'100%',width:wp(30)-15 }}   source= {{uri: item.image }} />  
             </View>
+            </TouchableOpacity>
             </>
     );
   };
 
+  return(
+    <View
+    style={{ flex:1, paddingLeft:25,paddingRight:25,paddingTop:0,backgroundColor:'white',paddingTop:15}}>
+  
+    <View style={{marginBottom:20, flexDirection:'row',width:wp(100)-50,backgroundColor:'white',}}>
+        <View style={{width:wp(50)-20,justifyContent:'space-around', backgroundColor:'white', alignItems:'flex-start'}}> 
+        
+        <Text
+        style={{
+            fontSize:16,
+            color: '#2D3791',
+            fontFamily:'Open-sans'
+        }}>WARDROBE
+        </Text>  
+        </View>
+        <View style={{width:wp(30)-10,flexDirection:'row', alignItems:'flex-end', backgroundColor:'white'}}>
+         
+          <Dropdown
+          style={styles.dropdown}
+          placeholderStyle={styles.placeholderStyle}
+          selectedTextStyle={styles.selectedTextStyle}
+          inputSearchStyle={styles.inputSearchStyle}
+          iconStyle={styles.iconStyle}
+          data={data}
+          search
+          maxHeight={300}
+          labelField="label"
+          valueField="value"
+          placeholder="Sort by"
+          searchPlaceholder="Search..."
+          value={value}
+          onChange={item => {
+          setValue(item.value);
+          }}
+      />
+         
+        </View>
+        <View style={{width:wp(20)-20, alignItems:'flex-end', backgroundColor:'white'}}>
+        <Image style={{width:35 ,height:'100%', }}  source={require('./assets/images/wardrobe/Arrowbutton.png')}/>
+        </View>
+    </View>
+    {/* <Text >
+  {route.params ? JSON.stringify(route.params, 5) : "No Params Passed"}
+  </Text> */}
+    <View style={{marginTop:16}}>
+        <Text style={{  fontSize:12, fontWeight:'700' ,
+            fontFamily:'Open-sans'
+      }}>RECENTLY ADDED</Text>
+
+        <View style={{marginTop:5}}>
+        <FlatList
+  horizontal
+  data={listItemsRA}
+    //data
+    defined="defined"
+    in="in"
+    constructor="constructor"
+    //Item
+    Separator="Separator"
+    View="View"
+    renderItem={recentlyaddedView}
+    keyExtractor={(item, index) => index.toString()}/>
+
+          
+            </View>      
+        </View>
+    <Text style={{marginVertical:10,  fontSize:12, fontWeight:'700' ,
+            fontFamily:'Open-sans'}}>All CLOTHES</Text>
+       <FlatList
+    numColumns={3}
+    data={listItems}
+    //data
+    defined="defined"
+    in="in"
+    constructor="constructor"
+    //Item
+    Separator="Separator"
+    View="View"
+    renderItem={ItemView}
+    keyExtractor={(item, index) => index.toString()}/>
+</View>
+  )
+}
+
+
+const Screen = ({ route }) => {
+ 
   return (
-  <View
-                    style={{ flex:1, paddingLeft:25,paddingRight:25,paddingTop:0,backgroundColor:'white',paddingTop:15
-                }}>
-                    
-                    <View style={{marginBottom:20, flexDirection:'row',width:wp(100)-50,backgroundColor:'white',}}>
-                        <View style={{width:wp(50)-20,justifyContent:'space-around', backgroundColor:'white', alignItems:'flex-start'}}> 
-                        <Text
-                        style={{
-                            fontSize:16,
-                            color: '#2D3791',
-                            fontFamily:'Open-sans'
-                        }}>WARDROBE
-                        </Text>  
-                        </View>
-                        <View style={{width:wp(30)-10,flexDirection:'row', alignItems:'flex-end', backgroundColor:'white'}}>
-                         
-                          <Dropdown
-                          style={styles.dropdown}
-                          placeholderStyle={styles.placeholderStyle}
-                          selectedTextStyle={styles.selectedTextStyle}
-                          inputSearchStyle={styles.inputSearchStyle}
-                          iconStyle={styles.iconStyle}
-                          data={data}
-                          search
-                          maxHeight={300}
-                          labelField="label"
-                          valueField="value"
-                          placeholder="Sort by"
-                          searchPlaceholder="Search..."
-                          value={value}
-                          onChange={item => {
-                          setValue(item.value);
-                          }}
-                      />
-                         
-                        </View>
-                        <View style={{width:wp(20)-20, alignItems:'flex-end', backgroundColor:'white'}}>
-                        <Image style={{width:35 ,height:'100%', }}  source={require('./assets/images/wardrobe/Arrowbutton.png')}/>
-                        </View>
-                    </View>
-                    <View style={{marginTop:16}}>
-                        <Text style={{  fontSize:12, fontWeight:'700' ,
-                            fontFamily:'Open-sans'
-                      }}>RECENTLY ADDED</Text>
+  <View style={{flex: 1,
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",}}>
+  <Text >
+  <Text >Screen Route: </Text>
+  {route.name}
+  </Text>
+  <Text >
+  <Text >Params: </Text>
+  {route.params ? JSON.stringify(route.params, 5) : "No Params Passed"}
+  </Text>
+  </View>
+  );
+};
 
-                        <View style={{marginTop:5}}>
-                        <FlatList
-                  horizontal
-                  data={listItemsRA}
-                    //data
-                    defined="defined"
-                    in="in"
-                    constructor="constructor"
-                    //Item
-                    Separator="Separator"
-                    View="View"
-                    renderItem={recentlyaddedView}
-                    keyExtractor={(item, index) => index.toString()}/>
-
-                          
-                            </View>      
-                        </View>
-                    <Text style={{marginVertical:10,  fontSize:12, fontWeight:'700' ,
-                            fontFamily:'Open-sans'}}>All CLOTHES</Text>
-                       <FlatList
-                    numColumns={3}
-                    data={listItems}
-                    //data
-                    defined="defined"
-                    in="in"
-                    constructor="constructor"
-                    //Item
-                    Separator="Separator"
-                    View="View"
-                    renderItem={ItemView}
-                    keyExtractor={(item, index) => index.toString()}/>
-                    
-                        
-                </View>
+const linking = {
+    config: {
+        screens: {
+          // Wardrobe: ':mobile?',
+          Wardrobe: ':mobile',
+        }
+    },
+  };
+ 
+const Stack = createStackNavigator();
+export default function App() {
+  return (
+    <NavigationContainer linking={linking} >
+      <Stack.Navigator 
+       initialRouteName="Wardrobe"
+        screenOptions={{
+          headerShown: false,
+       }}>
+        {/* <Stack.Screen name="Home" component={Screen} /> */}
+        <Stack.Screen name="Wardrobe" component={Wardrobe} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
+ 
+
 
 const styles = StyleSheet.create({
   container: {
